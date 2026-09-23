@@ -10,13 +10,13 @@ if TYPE_CHECKING:
     from gcode import GCodeCommand
 
     from cartographer.interfaces.configuration import GeneralConfig
-    from cartographer.interfaces.printer import ProbeMode, Toolhead
+    from cartographer.interfaces.printer import Toolhead
     from cartographer.macros.probe import ProbeMacro, QueryProbeMacro
 
 
 class KlipperProbeSession:
-    def __init__(self, probe: ProbeMode, toolhead: Toolhead) -> None:
-        self._probe: ProbeMode = probe
+    def __init__(self, probe: Probe, toolhead: Toolhead) -> None:
+        self._probe: Probe = probe
         self._results: list[list[float]] = []
         self.toolhead: Toolhead = toolhead
 
@@ -93,8 +93,12 @@ class KlipperCartographerProbe:
         }
 
     def get_offsets(self, gcmd: GCodeCommand | None = None) -> tuple[float, float, float]:
-        del gcmd
-        return self.probe.offset.as_tuple()
+        method = 'scan'
+        if gcmd is not None:
+            method = gcmd.get('METHOD', 'scan').lower()
+        if method == 'touch':
+            return self.probe.touch.offset.as_tuple()
+        return self.probe.scan.offset.as_tuple()
 
     def get_status(self, eventtime: float):
         del eventtime
@@ -106,5 +110,7 @@ class KlipperCartographerProbe:
         }
 
     def start_probe_session(self, gcmd: GCodeCommand) -> KlipperProbeSession:
-        del gcmd
-        return KlipperProbeSession(self.probe, self.toolhead)
+        method = gcmd.get('METHOD', 'scan').lower()
+        if method == 'touch':
+            return KlipperProbeSession(self.probe.touch, self.toolhead)
+        return KlipperProbeSession(self.probe.scan, self.toolhead)

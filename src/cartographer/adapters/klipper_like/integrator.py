@@ -31,9 +31,10 @@ if TYPE_CHECKING:
     from cartographer.adapters.klipper.configuration import KlipperConfiguration
     from cartographer.core import MacroRegistration, PrinterCartographer
     from cartographer.interfaces.configuration import GeneralConfig
-    from cartographer.interfaces.printer import Endstop, ProbeMode, Toolhead
+    from cartographer.interfaces.printer import Endstop, Toolhead
     from cartographer.macros.probe import ProbeMacro, QueryProbeMacro
     from cartographer.mcu.mcu import CartographerMcu
+    from cartographer.probe.probe import Probe
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +118,7 @@ class KlipperLikeIntegrator(Integrator):
             "probe",
             self._target_probe_class(
                 self._toolhead,
-                cartographer.scan_mode,
+                cartographer.probe,
                 cartographer.probe_macro,
                 cartographer.query_probe_macro,
                 cartographer.config.general,
